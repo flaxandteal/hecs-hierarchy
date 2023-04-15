@@ -159,6 +159,7 @@ pub trait HierarchyDag: crate::Hierarchy
 where
     Self: Sized,
 {
+    fn new() -> Self;
     fn children<T: Component>(&self, parent: Entity) -> CochildrenIter<T>;
     fn default() -> Self;
     fn ancestors<T: Component>(&self, child: Entity) -> AncestorDepthFirstIter<T>;
@@ -803,6 +804,10 @@ impl HierarchyDag for World {
                 // Return an iterator that does nothing.
                 CochildrenIter::new(self, 0, parent.id(), None)
             })
+    }
+
+    fn new() -> Self {
+        Self::new()
     }
 
     fn default() -> Self {
