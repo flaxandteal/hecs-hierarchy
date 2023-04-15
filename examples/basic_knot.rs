@@ -68,7 +68,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let child5 = world.attach_new::<Tree, _>(root, ("Child5",)).unwrap();
     let child5b = world.attach_new::<Tree, _>(child5, ("Child5b",)).unwrap();
     //let child6 = world.attach_new::<Tree, _>(child2, ("Child6",)).unwrap();
-    let child6 = world.knot::<Tree, _>(child2, child5b, ("Child6",)).unwrap();
+    let child6 = world.knot_new::<Tree, _>(child2, child5b, ("Child6",)).unwrap();
     let child7 = world.attach_new::<Tree, _>(child6, ("Child7",)).unwrap();
     let child8 = world.attach_new::<Tree, _>(_child3, ("Child8",)).unwrap();
 

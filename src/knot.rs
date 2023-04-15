@@ -205,7 +205,8 @@ pub trait HierarchyDagMut: crate::HierarchyMut {
     /// *Note*: The entity needs to be explicitly detached before being removed.
     fn _detach<T: Component>(&self, data: &mut Child<T>, child: Entity) -> Result<Option<Entity>>;
     fn _detach_tidy<T: Component>(&mut self, child: Entity, mode: DetachMode) -> Result<()>;
-    fn knot<T: Component, C: DynamicBundle>(&mut self, parent1: Entity, parent2: Entity, components: C) -> Result<Entity>;
+    fn knot_new<T: Component, C: DynamicBundle>(&mut self, parent1: Entity, parent2: Entity, components: C) -> Result<Entity>;
+    fn knot<T: Component>(&mut self, parent1: Entity, parent2: Entity, entity: Entity) -> Result<Entity>;
     fn try_get_child_mut<T: Component>(&self, entity: Entity, parent: u32) -> Result<RefMut<Child<T>>>;
     fn attach_new<T: Component, C: DynamicBundle>(
         &mut self,
@@ -586,9 +587,12 @@ impl HierarchyDagMut for World {
         Ok(child)
     }
 
-    fn knot<T: Component, C: DynamicBundle>(&mut self, parent1: Entity, parent2: Entity, components: C) -> Result<Entity> {
+    fn knot_new<T: Component, C: DynamicBundle>(&mut self, parent1: Entity, parent2: Entity, components: C) -> Result<Entity> {
         let knot = self.spawn(components);
+        self.knot::<T>(parent1, parent2, knot)
+    }
 
+    fn knot<T: Component>(&mut self, parent1: Entity, parent2: Entity, entity: Entity) -> Result<Entity> {
         let mut children: Vec<Child<T>> = vec![parent1, parent2].iter().map(|parent| -> Result<Child<T>> {
             let mut maybe_p = self.try_get_mut::<Parent<T>>(*parent);
             // println!["Q{}", parent.id()];
@@ -596,11 +600,11 @@ impl HierarchyDagMut for World {
                 p.num_children += 1;
             // println!["{} has {}", parent.id(), p.num_children];
                 let prev = p.last_child;
-                p.last_child = knot;
+                p.last_child = entity;
 
                 let mut prev_data = self.try_get_child_mut::<T>(prev, parent.id())?;
                 let next = prev_data.next;
-                prev_data.next = knot;
+                prev_data.next = entity;
 
                 mem::drop(prev_data);
                 mem::drop(maybe_p);
@@ -608,7 +612,7 @@ impl HierarchyDagMut for World {
                 // Update backward linking
                 {
                     let mut next_data = self.try_get_child_mut::<T>(next, parent.id())?;
-                    next_data.prev = knot;
+                    next_data.prev = entity;
                 }
 
                 return Ok(Child::<T>::new(*parent, next, prev))
@@ -616,18 +620,18 @@ impl HierarchyDagMut for World {
             mem::drop(maybe_p);
 
             // Parent component didn't exist
-            self.try_insert(*parent, (Parent::<T>::new(1, knot),))?;
-            Ok(Child::<T>::new(*parent, knot, knot))
+            self.try_insert(*parent, (Parent::<T>::new(1, entity),))?;
+            Ok(Child::<T>::new(*parent, entity, entity))
         }).flatten().collect();
 
         if let (Some(child2), Some(child1)) = (children.pop(), children.pop()) {
             // println!["P{} {}", child1.parent.id(), child2.parent.id()];
-            self.try_insert(knot, (Knot::<T>::new(
+            self.try_insert(entity, (Knot::<T>::new(
                         child1,
                         child2
             ),))?;
         }
-        Ok(knot)
+        Ok(entity)
     }
 
     fn try_get_child_mut<T: Component>(&self, entity: Entity, parent: u32) -> Result<RefMut<Child<T>>> {
