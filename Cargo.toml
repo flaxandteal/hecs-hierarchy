@@ -15,7 +15,7 @@ keywords = ["gamedev", "ecs", "hierarchy", "hecs"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-hecs = "0.7.7"
-hecs-schedule = { version = "0.6.2", default-features = false }
+hecs = "0.10.3"
+hecs-schedule = { git = "https://github.com/flaxandteal/hecs-schedule.git", branch = "fix/updates-for-hecs-0.10.3", default-features = false }
 once_cell = "1.12.0"
 smallvec = "1.9.0"

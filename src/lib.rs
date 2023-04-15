@@ -75,7 +75,7 @@
 //!
 //! // Iterate children
 //! for child in world.children::<Tree>(root) {
-//!     let name = world.get::<&str>(child).unwrap();
+//!     let name = world.get::<&&str>(child).unwrap();
 //!     println!("Child: {:?} {}", child, *name);
 //! }
 //!
@@ -84,7 +84,7 @@
 //!
 //! // Iterate recursively
 //! for child in world.descendants_depth_first::<Tree>(root) {
-//!     let name = world.get::<&str>(child).unwrap();
+//!     let name = world.get::<&&str>(child).unwrap();
 //!     println!("Child: {:?} {}", child, *name)
 //! }
 //!
@@ -119,6 +119,7 @@ mod builder_clone;
 mod components;
 mod hierarchy;
 mod iter;
+pub mod knot;
 
 pub use builder::*;
 pub use builder_clone::*;
